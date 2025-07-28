@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="gbk" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>前端图表导方案出</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+      * {
+      	margin: 0;
+      	padding: 0;
+      	box-sizing: border-box;
+      	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+      	background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+      	min-height: 100vh;
+      	padding: 20px;
+      }
+
+
+      .container {
+      	max-width: 1200px;
+      	margin: 0 auto;
+      	padding: 20px;
+      }
+
+      header {
+      	text-align: center;
+      	margin-bottom: 30px;
+      	padding: 20px;
+      	background: white;
+      	border-radius: 12px;
+      	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      h1 {
+      	color: #2c3e50;
+      	margin-bottom: 10px;
+      	font-size: 2.2rem;
+      }
+
+      .subtitle {
+      	color: #7f8c8d;
+      	font-size: 1.1rem;
+      }
+
+
+      .dashboard {
+      	display: grid;
+      	grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      	gap: 25px;
+      	margin-bottom: 30px;
+      }
+
+
+      .chart-container {
+      	background: white;
+      	border-radius: 12px;
+      	padding: 20px;
+      	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      	transition: transform 0.3s ease;
+      }
+
+
+      .chart-container:hover {
+      	transform: translateY(-5px);
+      }
+
+      .chart-title {
+      	font-size: 1.3rem;
+      	color: #2c3e50;
+      	margin-bottom: 15px;
+      	padding-bottom: 10px;
+      	border-bottom: 1px solid #eee;
+      }
+
+      .chart {
+      	height: 350px;
+      	width: 100%;
+      }
+
+      .controls {
+      	display: flex;
+      	justify-content: center;
+      	gap: 15px;
+      	margin-top: 30px;
+      }
+
+      button {
+      	background: #3498db;
+      	color: white;
+      	border: none;
+      	padding: 12px 25px;
+      	border-radius: 50px;
+      	font-size: 1rem;
+      	font-weight: 600;
+      	cursor: pointer;
+      	transition: all 0.3s ease;
+      	box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+      	display: flex;
+      	align-items: center;
+      	gap: 8px;
+      }
+
+      button:hover {
+      	background: #2980b9;
+      	transform: translateY(-2px);
+      	box-shadow: 0 6px 8px rgba(52, 152, 219, 0.4);
+      }
+
+      button:active {
+      	transform: translateY(0);
+      }
+
+      .download-icon {
+      	font-size: 1.2rem;
+      }
+
+      .instructions {
+      	background: #f8f9fa;
+      	border-radius: 10px;
+      	padding: 20px;
+      	margin-top: 20px;
+      }
+
+      .instructions h3 {
+      	color: #3498db;
+      	margin-bottom: 15px;
+      }
+
+      .instructions ol {
+      	padding-left: 25px;
+      }
+
+      .instructions li {
+      	margin-bottom: 10px;
+      	line-height: 1.6;
+      }
+
+      @media (max-width: 768px) {
+      	.dashboard {
+      		grid-template-columns: 1fr;
+      	}
+      	.chart {
+      		height: 300px;
+      	}
+	  }
+    </style>
+  </head>
+  <body>
+    <div id="plan" class="container">
+      <header>
+        <h1>前端方案</h1>
+        <p class="subtitle">Canvas API 生成图表的 base64编码</p>
+      </header>
+
+      <div class="dashboard">
+        <div class="chart-container">
+          <div class="chart-title">ECharts 入门示例</div>
+          <div ref="marketChart" class="chart main"></div>
+        </div>
+      </div>
+
+      <div class="dashboard">
+        <div class="chart-container">
+          <div class="chart-title">canvas</div>
+          <div class="chart"><img id="imgA" /></div>
+        </div>
+      </div>
+
+      <div class="dashboard">
+        <div class="chart-container">
+          <div class="chart-title">echart</div>
+          <div class="chart"><img id="imgB" /></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button @click="canvasToImage">
+          <span class="download-icon"></span>canvas
+        </button>
+        <button @click="echartToBase64">
+          <span class="download-icon"></span>echart
+        </button>
+      </div>
+    </div>
+
+    <script>
+      new Vue({
+      	el: '#plan',
+      	data() {
+      		return {
+      			marketChart: null
+      		}
+      	},
+      	mounted() {
+      		this.initCharts();
+      	},
+      	methods: {
+      		initCharts() {
+      			// 将图表实例保存到 Vue 实例的 data 中
+      			this.marketChart = echarts.init(this.$refs.marketChart);
+      			this.marketChart.setOption({
+      				tooltip: {},
+      				legend: {
+      					data: ['销量']
+					},
+      				xAxis: {
+      					data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+					},
+      				yAxis: {},
+      				series: [{
+      					name: '销量',
+      					type: 'bar',
+      					data: [5, 20, 36, 10, 10, 20]
+					}]
+				});
+
+      			// 响应式调整
+     			window.addEventListener('resize', () => {
+      				if (this.marketChart) {
+      					this.marketChart.resize();
+      				}
+				});
+      		},
+
+      		async canvasToImage() {
+      			const element = document.querySelector('.container .main');
+      			const canvas = await html2canvas(element, {
+      				scale: 1
+      			});
+      			document.getElementById('imgA').src = canvas.toDataURL('image/png');
+      		},
+			
+			async echartToBase64() {
+				document.getElementById('imgB').src = this.marketChart.getDataURL({
+					pixelRatio: 1,
+					backgroundColor: '#fff'
+      			});
+      		}
+      	}
+      });
+    </script>
+  </body>
+</html>
